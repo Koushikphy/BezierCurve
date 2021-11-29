@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.plot.ly/plotly-2.6.3.min.js"></script>
+</head>
+
+<body>
+    <div id="root"></div>
+    <script>
+        var xx = [1, 2, 2.5, 1.5];
+        var yy = [1, 2, 8, 15];
+
+        Plotly.newPlot('root', [{
+            x: xx,
+            y: yy
+        },
+        {
+            x: [],
+            y: []
+        },
+        {
+            x: [],
+            y: []
+        },
+        {
+            x: [],
+            y: []
+        },
+        {
+            x: [],
+            y: []
+        }], {
+            margin: { t: 0 }
+        });
+
+        poinst = 4
+        nSteps = 100
+
+        function sleep(delay) {
+            var start = new Date().getTime();
+            while (new Date().getTime() < start + delay);
+        }
+
+        function lerp(t, xList, yList) {
+            order = xList.length - 1;
+
+            var xOutList = new Array(order).fill(0);
+            var yOutList = new Array(order).fill(0);
+
+            for (let i = 0; i < order; i++) {
+                xOutList[i] = t * xList[i] + (1 - t) * xList[i + 1]
+                yOutList[i] = t * yList[i] + (1 - t) * yList[i + 1]
+            }
+            return [xOutList, yOutList];
+        }
+
+        var txx = [];
+        var tyy = [];
+        N = 100
+        // t = 0.3
+        // for (let i = 0; i < N; i++) {
+
+        //     var x = JSON.parse(JSON.stringify(xx))
+        //     var y = JSON.parse(JSON.stringify(yy))
+        //     t = i / N;
+        // //     // console.log(t);
+        //     var [x, y] = lerp(t, xx, yy)
+        //     Plotly.restyle('root', { x: [x], y: [y] }, 1)
+        //     // console.log(x,y);
+        //     var [x, y] = lerp(t, x, y)
+        //     Plotly.restyle('root', { x: [x], y: [y] }, 2)
+        //     // console.log(x,y);
+        //     var [x, y] = lerp(t, x, y)
+        //     Plotly.restyle('root', { x: [x], y: [y] }, 3)
+        //     txx.push(x[0]);
+        //     tyy.push(y[0])
+        //     Plotly.restyle('root', { x: [txx], y: [tyy] }, 3)
+
+        // }
+
+
+ i = 0;
+        function plotBezier(){
+            i = i>N? 0:i+1
+            i = i+1;
+            if(i>N){
+                i = 0;
+                txx = [];
+                tyy = [];
+            }
+            var x = JSON.parse(JSON.stringify(xx))
+            var y = JSON.parse(JSON.stringify(yy))
+            t = i / N;
+        //     // console.log(t);
+            var [x, y] = lerp(t, xx, yy)
+            Plotly.restyle('root', { x: [x], y: [y] }, 1)
+            // console.log(x,y);
+            var [x, y] = lerp(t, x, y)
+            Plotly.restyle('root', { x: [x], y: [y] }, 2)
+            // console.log(x,y);
+            var [x, y] = lerp(t, x, y)
+            Plotly.restyle('root', { x: [x], y: [y] }, 3)
+            txx.push(x[0]);
+            tyy.push(y[0])
+            Plotly.restyle('root', { x: [txx], y: [tyy] }, 3)
+
+        }
+
+        setInterval(plotBezier,100);
+
+
+
+    </script>
+</body>
+
+</html>
