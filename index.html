@@ -7,91 +7,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
-        body,html{
-            height: 100vh;
-            width: 100%;
+        body,
+        html {
+            height: 99%;
+            width: 99%;
+            display: flex;
+            flex-direction: column;
         }
-        #root{
+
+        #root {
             width: 100%;
             height: 90vh;
+            flex-grow: 1;
+        }
+
+        #val {
+            width: 5em;
         }
     </style>
     <script src="https://cdn.plot.ly/plotly-2.6.3.min.js"></script>
 </head>
 
 <body>
-
+    <div id="header">
+        The Beauty of Bézier Curve
+    </div>
+    <div>
+        <label for="val" id='tag'>Generate a Bézier Curve of order </label>
+        <input type="number" id='val' min='2' value="3">
+        <button id='btn' onclick="CreateBezierCurveAnimation()">Create</button>
+    </div>
     <div id="root"></div>
+    <div>Inspired by <a href="https://www.youtube.com/watch?v=aVwxzDHniEw">'The Beauty of Bézier Curves'</a> by Freya
+        Holmer. <a href="https://github.com/Koushikphy/BezierCurve.git">Check here</a> for source code. </div>
     <script>
         const root = document.getElementById('root'); // plot container
-        const clone = (arr)=> [... arr]; // clone an array
-        const xMin = 0, xMax = 10, yMin = 0, yMax = 10; // minimum and maximum of the plot window
-        const layOut={
-            showlegend:false,
-            xaxis:{
-                zeroline:false,
-                showline:false,
-                showgrid:false,
-                visible:false
-            },
-            yaxis:{
-                zeroline:false,
-                showline:false,
-                showgrid:false,
-                visible:false
-            }
-        }
-        const config = {
-            displayModeBar:false
-        }
+        const inp = document.getElementById('val'); // order input
 
         // random number generator to generate number in a range
         const randomNumber = (minimum, maximum) => Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
+        const clone = (arr) => [...arr]; // clone an array
+        const xRange = [0, 10], yRange = [0, 10] // minimum and maximum of the plot window
+        const nSteps = 100 // number of steps to animate
+        const timeDuration = 3 //  time duration of the animation
+        const timeDelay = 0.5 // time delay after each loop completion
 
-        // number of points, order of the bezier curve nPoints -1
-        var nPoints = 9;
-        const nSteps = 100;
-
-        // Initial coordinates. generate a list of random points.
-        var xPoints = new Array(nPoints).fill(0).map(_ => randomNumber(xMin, xMax))
-        var yPoints = new Array(nPoints).fill(0).map(_ => randomNumber(yMin, yMax))
-
-
-        // Initiate the plot
-        var plotData = [];
-        for (let i = 0; i <= nPoints; i++) { // for nPoints there will be nPoints+1 traces
-            plotData.push({
-                x: [],
-                y: [],
-                type: 'scatter',
-                mode: 'lines+markers',
-                opacity:0.75,
-                line:{
-                    width:1
-                }
-                
-            })
-        }
-
-        plotData[0].x = xPoints
-        plotData[0].y = yPoints
-        plotData[0].opacity = 1
-        plotData[0].line.width = 3
-        plotData[0].line.color = 'black'
-        plotData[0].marker = {
-            size: 10,
-            symbol : 'circle-open-dot',
-            line:{width:3}
-        }
-        plotData[nPoints].opacity = 1
-        plotData[nPoints-1].opacity = 1
-        plotData[nPoints].mode = 'lines'
-        plotData[nPoints].line.width = 3
-        plotData[nPoints].line.color = 'red'
-        plotData[nPoints - 1].mode = 'markers'
-        plotData[nPoints - 1].marker = {size : 13, color:"blue"}
-
-        Plotly.newPlot(root, plotData,layOut,config);
+        var nPoints = 3, xPoints, yPoints, i = 0, curveX = [], curveY = [], myTimer;
 
 
         // core linear interpolation function
@@ -109,14 +70,71 @@
         }
 
 
-        var i=0, curveX = [], curveY = [], myTimer;
-        function plotBezier(){
+        // Initiate the plot
+        function initiatePlot() {
+            const layOut = {
+                showlegend: false,
+                xaxis: {
+                    zeroline: false,
+                    showline: false,
+                    showgrid: false,
+                    visible: false
+                },
+                yaxis: {
+                    zeroline: false,
+                    showline: false,
+                    showgrid: false,
+                    visible: false
+                }
+            }
+            const config = {
+                displayModeBar: false
+            }
 
-            var t = i/nSteps;
+            var plotData = [];
+            for (let i = 0; i <= nPoints; i++) { // for nPoints there will be nPoints+1 traces
+                plotData.push({
+                    x: [],
+                    y: [],
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    opacity: 1,
+                    line: {
+                        width: 1
+                    }
+
+                })
+            }
+
+            plotData[0].x = xPoints
+            plotData[0].y = yPoints
+            plotData[0].opacity = 1
+            plotData[0].line.width = 3
+            plotData[0].line.color = 'black'
+            plotData[0].marker = {
+                size: 10,
+                symbol: 'circle-open-dot',
+                line: { width: 3 }
+            }
+            plotData[nPoints].opacity = 1
+            plotData[nPoints - 1].opacity = 1
+            plotData[nPoints].mode = 'lines'
+            plotData[nPoints].line.width = 3
+            plotData[nPoints].line.color = 'red'
+            plotData[nPoints - 1].mode = 'markers'
+            plotData[nPoints - 1].marker = { size: 13, color: "blue" }
+
+            Plotly.newPlot(root, plotData, layOut, config);
+
+        }
+
+
+        function plotBezier() {
+            var t = i / nSteps;
             var toPlotX = [xPoints], toPlotY = [yPoints];
-            var x = clone(xPoints),y = clone(yPoints);
+            var x = clone(xPoints), y = clone(yPoints);
 
-            for(let j=1;j<nPoints;j++){
+            for (let j = 1; j < nPoints; j++) {
                 var [x, y] = lerp(t, x, y)
                 toPlotX.push(clone(x));
                 toPlotY.push(clone(y))
@@ -127,21 +145,30 @@
             toPlotX.push(curveX)
             toPlotY.push(curveY)
 
-            Plotly.restyle(root, {x:toPlotX, y:toPlotY})
-            i = i==nSteps? 0:i+1
-            if(i==0){
-                curveX = []
-                curveY = []
-                clearInterval(myTimer);
-                setTimeout(startTimer, 500); // pause for half second
+            Plotly.restyle(root, { x: toPlotX, y: toPlotY })
+            i = i == nSteps ? 0 : i + 1
+            if (i == 0) {
+                curveX = []; curveY = [];
+                setTimeout(startTimer, timeDelay * 1000);
             }
         }
 
-        function startTimer(){
-            myTimer = setInterval(plotBezier, 3*1000/nSteps);
-        }
-        startTimer();
 
+        function startTimer() {
+            clearInterval(myTimer);
+            myTimer = setInterval(plotBezier, timeDuration * 1000 / nSteps);
+        }
+
+
+        function CreateBezierCurveAnimation() {
+            nPoints = parseInt(inp.value) + 1;// number of points, order of the bezier curve nPoints -1
+            // Initial coordinates. generate a list of random points.
+            xPoints = new Array(nPoints).fill(0).map(_ => randomNumber(...xRange))
+            yPoints = new Array(nPoints).fill(0).map(_ => randomNumber(...yRange))
+            initiatePlot();
+            i = 0, curveX = [], curveY = []
+            startTimer();
+        }
 
     </script>
 </body>
