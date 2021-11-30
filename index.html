@@ -14,7 +14,6 @@
             display: flex;
             flex-direction: column;
         }
-
         #header {
             font-size: 2em;
             display: inline-block;
@@ -23,10 +22,6 @@
         #info{
             font-size: 1.2em;
             display: inline-block;
-            /* margin: auto; */
-            /* float: right; */
-            /* padding-right: 3em; */
-            /* padding-top: 1em; */
         }
 
         #root {
@@ -38,9 +33,7 @@
         #val {
             width: 3em;
         }
-
     </style>
-    
     <script src="https://cdn.plot.ly/plotly-2.6.3.min.js"></script>
 </head>
 
@@ -125,7 +118,6 @@
                     line: {
                         width: 1
                     }
-
                 })
             }
 
@@ -148,7 +140,6 @@
             plotData[nPoints - 1].marker = { size: 13, color: "blue" }
 
             Plotly.newPlot(root, plotData, layOut, config);
-
         }
 
 
@@ -173,7 +164,6 @@
             if (i == 0) {
                 curveX = []; curveY = [];
                 clearInterval(myTimer);
-
                 setTimeout(startTimer, timeDelay * 1000);
             }
         }
@@ -195,10 +185,6 @@
             startTimer();
         }
         CreateBezierCurveAnimation();
-
-
-
     </script>
 </body>
-
 </html>
