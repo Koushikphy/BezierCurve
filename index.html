@@ -6,46 +6,95 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <style>
+        body,html{
+            height: 100vh;
+            width: 100%;
+        }
+        #root{
+            width: 100%;
+            height: 90vh;
+        }
+    </style>
     <script src="https://cdn.plot.ly/plotly-2.6.3.min.js"></script>
 </head>
 
 <body>
+
     <div id="root"></div>
     <script>
-        var xx = [1, 2, 2.5, 1.5];
-        var yy = [1, 2, 8, 15];
-
-        Plotly.newPlot('root', [{
-            x: xx,
-            y: yy
-        },
-        {
-            x: [],
-            y: []
-        },
-        {
-            x: [],
-            y: []
-        },
-        {
-            x: [],
-            y: []
-        },
-        {
-            x: [],
-            y: []
-        }], {
-            margin: { t: 0 }
-        });
-
-        poinst = 4
-        nSteps = 100
-
-        function sleep(delay) {
-            var start = new Date().getTime();
-            while (new Date().getTime() < start + delay);
+        const root = document.getElementById('root'); // plot container
+        const clone = (arr)=> [... arr]; // clone an array
+        const xMin = 0, xMax = 10, yMin = 0, yMax = 10; // minimum and maximum of the plot window
+        const layOut={
+            showlegend:false,
+            xaxis:{
+                zeroline:false,
+                showline:false,
+                showgrid:false,
+                visible:false
+            },
+            yaxis:{
+                zeroline:false,
+                showline:false,
+                showgrid:false,
+                visible:false
+            }
+        }
+        const config = {
+            displayModeBar:false
         }
 
+        // random number generator to generate number in a range
+        const randomNumber = (minimum, maximum) => Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
+
+        // number of points, order of the bezier curve nPoints -1
+        var nPoints = 9;
+        const nSteps = 100;
+
+        // Initial coordinates. generate a list of random points.
+        var xPoints = new Array(nPoints).fill(0).map(_ => randomNumber(xMin, xMax))
+        var yPoints = new Array(nPoints).fill(0).map(_ => randomNumber(yMin, yMax))
+
+
+        // Initiate the plot
+        var plotData = [];
+        for (let i = 0; i <= nPoints; i++) { // for nPoints there will be nPoints+1 traces
+            plotData.push({
+                x: [],
+                y: [],
+                type: 'scatter',
+                mode: 'lines+markers',
+                opacity:0.75,
+                line:{
+                    width:1
+                }
+                
+            })
+        }
+
+        plotData[0].x = xPoints
+        plotData[0].y = yPoints
+        plotData[0].opacity = 1
+        plotData[0].line.width = 3
+        plotData[0].line.color = 'black'
+        plotData[0].marker = {
+            size: 10,
+            symbol : 'circle-open-dot',
+            line:{width:3}
+        }
+        plotData[nPoints].opacity = 1
+        plotData[nPoints-1].opacity = 1
+        plotData[nPoints].mode = 'lines'
+        plotData[nPoints].line.width = 3
+        plotData[nPoints].line.color = 'red'
+        plotData[nPoints - 1].mode = 'markers'
+        plotData[nPoints - 1].marker = {size : 13, color:"blue"}
+
+        Plotly.newPlot(root, plotData,layOut,config);
+
+
+        // core linear interpolation function
         function lerp(t, xList, yList) {
             order = xList.length - 1;
 
@@ -59,60 +108,39 @@
             return [xOutList, yOutList];
         }
 
-        var txx = [];
-        var tyy = [];
-        N = 100
-        // t = 0.3
-        // for (let i = 0; i < N; i++) {
 
-        //     var x = JSON.parse(JSON.stringify(xx))
-        //     var y = JSON.parse(JSON.stringify(yy))
-        //     t = i / N;
-        // //     // console.log(t);
-        //     var [x, y] = lerp(t, xx, yy)
-        //     Plotly.restyle('root', { x: [x], y: [y] }, 1)
-        //     // console.log(x,y);
-        //     var [x, y] = lerp(t, x, y)
-        //     Plotly.restyle('root', { x: [x], y: [y] }, 2)
-        //     // console.log(x,y);
-        //     var [x, y] = lerp(t, x, y)
-        //     Plotly.restyle('root', { x: [x], y: [y] }, 3)
-        //     txx.push(x[0]);
-        //     tyy.push(y[0])
-        //     Plotly.restyle('root', { x: [txx], y: [tyy] }, 3)
-
-        // }
-
-
- i = 0;
+        var i=0, curveX = [], curveY = [], myTimer;
         function plotBezier(){
-            i = i>N? 0:i+1
-            i = i+1;
-            if(i>N){
-                i = 0;
-                txx = [];
-                tyy = [];
-            }
-            var x = JSON.parse(JSON.stringify(xx))
-            var y = JSON.parse(JSON.stringify(yy))
-            t = i / N;
-        //     // console.log(t);
-            var [x, y] = lerp(t, xx, yy)
-            Plotly.restyle('root', { x: [x], y: [y] }, 1)
-            // console.log(x,y);
-            var [x, y] = lerp(t, x, y)
-            Plotly.restyle('root', { x: [x], y: [y] }, 2)
-            // console.log(x,y);
-            var [x, y] = lerp(t, x, y)
-            Plotly.restyle('root', { x: [x], y: [y] }, 3)
-            txx.push(x[0]);
-            tyy.push(y[0])
-            Plotly.restyle('root', { x: [txx], y: [tyy] }, 3)
 
+            var t = i/nSteps;
+            var toPlotX = [xPoints], toPlotY = [yPoints];
+            var x = clone(xPoints),y = clone(yPoints);
+
+            for(let j=1;j<nPoints;j++){
+                var [x, y] = lerp(t, x, y)
+                toPlotX.push(clone(x));
+                toPlotY.push(clone(y))
+            }
+
+            curveX.push(x[0])
+            curveY.push(y[0])
+            toPlotX.push(curveX)
+            toPlotY.push(curveY)
+
+            Plotly.restyle(root, {x:toPlotX, y:toPlotY})
+            i = i==nSteps? 0:i+1
+            if(i==0){
+                curveX = []
+                curveY = []
+                clearInterval(myTimer);
+                setTimeout(startTimer, 500); // pause for half second
+            }
         }
 
-        setInterval(plotBezier,100);
-
+        function startTimer(){
+            myTimer = setInterval(plotBezier, 3*1000/nSteps);
+        }
+        startTimer();
 
 
     </script>
