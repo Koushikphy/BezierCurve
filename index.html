@@ -15,6 +15,20 @@
             flex-direction: column;
         }
 
+        #header {
+            font-size: 2em;
+            display: inline-block;
+            padding-right: 2em;
+        }
+        #info{
+            font-size: 1.2em;
+            display: inline-block;
+            /* margin: auto; */
+            /* float: right; */
+            /* padding-right: 3em; */
+            /* padding-top: 1em; */
+        }
+
         #root {
             width: 100%;
             height: 90vh;
@@ -22,24 +36,28 @@
         }
 
         #val {
-            width: 5em;
+            width: 3em;
         }
+
     </style>
+    
     <script src="https://cdn.plot.ly/plotly-2.6.3.min.js"></script>
 </head>
 
 <body>
-    <div id="header">
-        The Beauty of Bézier Curve
-    </div>
     <div>
-        <label for="val" id='tag'>Generate a Bézier Curve of order </label>
-        <input type="number" id='val' min='2' value="3">
-        <button id='btn' onclick="CreateBezierCurveAnimation()">Create</button>
+        <div id="header">
+            The Beauty of <br> Bézier Curves
+        </div>
+        <div id=info>
+            <label for="val" id='tag'>Generate a Bézier Curve of order </label>
+            <input type="number" id='val' min='2' max="50" value="3" onchange="CreateBezierCurveAnimation()">
+            <button id='btn' onclick="CreateBezierCurveAnimation()">Regenerate</button>
+        </div>
     </div>
     <div id="root"></div>
     <div>Inspired by <a href="https://www.youtube.com/watch?v=aVwxzDHniEw">'The Beauty of Bézier Curves'</a> by Freya
-        Holmer. <a href="https://github.com/Koushikphy/BezierCurve.git">Check here</a> for source code. </div>
+        Holmér. <a href="https://github.com/Koushikphy/BezierCurve.git">Check here</a> for source code. </div>
     <script>
         const root = document.getElementById('root'); // plot container
         const inp = document.getElementById('val'); // order input
@@ -78,13 +96,17 @@
                     zeroline: false,
                     showline: false,
                     showgrid: false,
-                    visible: false
+                    visible: false,
+                    fixedrange: true,
+                    // range:xRange
                 },
                 yaxis: {
                     zeroline: false,
                     showline: false,
                     showgrid: false,
-                    visible: false
+                    visible: false,
+                    fixedrange: true,
+                    // range:yRange
                 }
             }
             const config = {
@@ -99,6 +121,7 @@
                     type: 'scatter',
                     mode: 'lines+markers',
                     opacity: 1,
+                    hoverinfo: "none",
                     line: {
                         width: 1
                     }
@@ -149,13 +172,14 @@
             i = i == nSteps ? 0 : i + 1
             if (i == 0) {
                 curveX = []; curveY = [];
+                clearInterval(myTimer);
+
                 setTimeout(startTimer, timeDelay * 1000);
             }
         }
 
 
         function startTimer() {
-            clearInterval(myTimer);
             myTimer = setInterval(plotBezier, timeDuration * 1000 / nSteps);
         }
 
@@ -167,8 +191,12 @@
             yPoints = new Array(nPoints).fill(0).map(_ => randomNumber(...yRange))
             initiatePlot();
             i = 0, curveX = [], curveY = []
+            clearInterval(myTimer);
             startTimer();
         }
+        CreateBezierCurveAnimation();
+
+
 
     </script>
 </body>
